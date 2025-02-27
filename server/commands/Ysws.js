@@ -42,7 +42,7 @@ class YSWSCommand extends Command {
         const { step, data } = this.interactiveState;
 		let inputFixed = input.trim();
         if (step === 0) {
-            if (inputFixed === `create` || inputFixed === `list` || inputFixed === `search`) {
+            if (inputFixed === `create` || inputFixed === `search`) {
                 data.type = input;
                 this.interactiveState.step++;
                 return {
@@ -50,6 +50,16 @@ class YSWSCommand extends Command {
                     prompt: this.getNextPrompt(),
                 };
             }
+			if (inputFixed === `list`) {
+				const { data: projects, error } = await supabase.from(`ysws`).select(`*`);
+				if (error) throw error;
+				if (!projects.length) return { awaitingInput: false, prompt: `No projects found.` };
+				let availableProjects = []
+				projects.forEach(project => {
+					availableProjects.push(`Project: ${project.title} by ${project.author} ⭐ ${project.likes} - ${project.description} | tags: ${project.tags}`);
+				});
+				return { awaitingInput: false, prompt: `Available projects:\n${availableProjects.join(`\n`)}`, timeout: this.interactionTimeout };
+			}
             return {
                 awaitingInput: true,
                 prompt: `Invalid input. Select action (create/list/search):`,
@@ -83,19 +93,9 @@ class YSWSCommand extends Command {
 			if (!projects.length) return { awaitingInput: false, prompt: `No projects found.` };
 			let availableProjects = []
 			projects.forEach(project => {
-				availableProjects.push(`Project: ${project.title} by ${project.author} ⭐ ${project.likes} - ${project.description}`);
+				availableProjects.push(`Project: ${project.title} by ${project.author} ⭐ ${project.likes} - ${project.description} | tags: ${project.tags}`);
 			});
 			
-			return { awaitingInput: false, prompt: `Available projects:\n${availableProjects.join(`\n`)}`, timeout: this.interactionTimeout };
-		}
-		if (step === 1 && data.type === `list`) {
-			const { data: projects, error } = await supabase.from(`ysws`).select(`*`);
-			if (error) throw error;
-			if (!projects.length) return { awaitingInput: false, prompt: `No projects found.` };
-			let availableProjects = []
-			projects.forEach(project => {
-				availableProjects.push(`Project: ${project.title} by ${project.author} ⭐ ${project.likes} - ${project.description}`);
-			});
 			return { awaitingInput: false, prompt: `Available projects:\n${availableProjects.join(`\n`)}`, timeout: this.interactionTimeout };
 		}
     }
