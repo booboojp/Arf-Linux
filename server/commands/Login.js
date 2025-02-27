@@ -18,7 +18,6 @@ class LoginCommand extends Command {
             options: { redirectTo: process.env.SLACK_REDIRECT_URI }
         });
         if (error) throw error;
-		if (!data)
         return {
             success: true,
             result: `Redirecting to Slack login...`,
