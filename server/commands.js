@@ -41,7 +41,7 @@ class CommandExecutor {
     async execute(command, params, req, interactionId = null) {
         if (interactionId && this.activeInteractions.has(interactionId)) {
             const interaction = this.activeInteractions.get(interactionId);
-            const result = await interaction.command.handleInteractiveInput(command, req);
+            const result = await interaction.command.handleInteractiveInput(req.body.command, req);
 
             if (!result.awaitingInput) {
                 this.activeInteractions.delete(interactionId);
