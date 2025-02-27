@@ -7,15 +7,22 @@ class LogoutCommand extends Command {
             name: `logout`,
             aliases: [`signout`],
             params: [],
-            requiresAuth: false,
+            requiresAuth: true,
             description: `Logout from current session`
         });
+    }
+
+    async beforeExecute(req) {
+        if (!supabase.auth.getUser()) {
+            throw new Error(`Not authenticated with Supabase`);
+        }
+        await super.beforeExecute(req);
     }
 
     async execute(params, req) {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
-        return { success: true, result: `Successfully logged out` };
+        return { success: true, result: `Successfully logged out`, auth: `logout` };
     }
 }
 

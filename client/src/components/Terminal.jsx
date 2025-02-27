@@ -3,6 +3,7 @@ import parseANSI from '../utils/parseANSI.js';
 import archLinuxLogoASCII from '../assets/archLinuxLogoASCII.js';
 import { useAuth } from './AuthProvider';
 import './Terminal.css';
+import { supabase } from '../utils/supabase.js';
 
 const Terminal = () => {
     const { session: authSession } = useAuth();
@@ -73,71 +74,76 @@ const Terminal = () => {
         }
     };
 	const handleCommand = async (command) => {
-		try {
-			const response = await fetch(`http://localhost:8080/api/command`, {
-				method: `POST`,
-				headers: {
-					'Content-Type': `application/json`,
-					...(authSession?.access_token && {
-						'Authorization': `Bearer ${authSession.access_token}`
-					})
-				},
-				body: JSON.stringify({
-					command,
-					interactionId
-				})
-			});
+    try {
+        const response = await fetch(`http://localhost:8080/api/command`, {
+            method: `POST`,
+            headers: {
+                'Content-Type': `application/json`,
+                ...(authSession?.access_token && {
+                    'Authorization': `Bearer ${authSession.access_token}`
+                })
+            },
+            body: JSON.stringify({
+                command,
+                interactionId
+            })
+        });
 
-			const data = await response.json();
+        const data = await response.json();
 
-			setCommands(prev => [...prev, {
-				input: command,
-				isInteractive: !!interactionId,
-				timestamp: new Date().toISOString()
-			}]);
+        setCommands(prev => [...prev, {
+            input: command,
+            isInteractive: !!interactionId,
+            timestamp: new Date().toISOString()
+        }]);
 
-			if (data.error) {
-				setCommands(prev => [...prev, {
-					error: data.error,
-					timestamp: new Date().toISOString()
-				}]);
-				setInteractionId(null);
-				setInteractivePrompt(null);
-				return;
-			}
+        if (data.error) {
+            setCommands(prev => [...prev, {
+                error: data.error,
+                timestamp: new Date().toISOString()
+            }]);
+            setInteractionId(null);
+            setInteractivePrompt(null);
+            return;
+        }
 
-            if (data.redirect) {
-                window.location.href
-                    = data.redirect;
-            }
+        if (data.redirect) {
+            window.location.href = data.redirect;
+        }
 
-			if (data.awaitingInput) {
-				setInteractionId(data.interactionId || interactionId);
-				setInteractivePrompt(data.prompt);
+        if (data.auth && data.auth === `logout`) {
+            await supabase.auth.signOut();
+            window.location.reload();
+            return;
+        }
 
-				setCommands(prev => [...prev, {
-					isPrompt: true,
-					output: data.prompt,
-					timestamp: new Date().toISOString()
-				}]);
-			} else {
-				setInteractionId(null);
-				setInteractivePrompt(null);
-				setCommands(prev => [...prev, {
-					output: data.result?.message || data.result,
-					timestamp: new Date().toISOString()
-				}]);
-			}
-		} catch (error) {
-			console.error(`Command error:`, error);
-			setCommands(prev => [...prev, {
-				error: error.message,
-				timestamp: new Date().toISOString()
-			}]);
-			setInteractionId(null);
-			setInteractivePrompt(null);
-		}
-	};
+        if (data.awaitingInput) {
+            setInteractionId(data.interactionId || interactionId);
+            setInteractivePrompt(data.prompt);
+
+            setCommands(prev => [...prev, {
+                isPrompt: true,
+                output: data.prompt,
+                timestamp: new Date().toISOString()
+            }]);
+        } else {
+            setInteractionId(null);
+            setInteractivePrompt(null);
+            setCommands(prev => [...prev, {
+                output: data.result?.message || data.result || data.prompt,
+                timestamp: new Date().toISOString()
+            }]);
+        }
+    } catch (error) {
+        console.error(`Command error:`, error);
+        setCommands(prev => [...prev, {
+            error: error.message,
+            timestamp: new Date().toISOString()
+        }]);
+        setInteractionId(null);
+        setInteractivePrompt(null);
+    }
+};
 
     const userName = authSession?.user?.user_metadata?.name || unauthenticatedClientName;
 
