@@ -56,9 +56,9 @@ class YSWSCommand extends Command {
 				if (!projects.length) return { awaitingInput: false, prompt: `No projects found.` };
 				let availableProjects = []
 				projects.forEach(project => {
-					availableProjects.push(`Project: ${project.title} by ${project.author} ⭐ ${project.likes} - ${project.description} | tags: ${project.tags}`);
+					availableProjects.push(`Project: ${project.title} by ${project.author} ⭐ ${project.likes} - ${project.description} | tags: ${project.tags} | id: ${project.id}`);
 				});
-				return { awaitingInput: false, prompt: `Available projects:\n${availableProjects.join(`\n`)}`, timeout: this.interactionTimeout };
+				return { awaitingInput: false, result: `Available projects:\n${availableProjects.join(`\n`)}`, timeout: this.interactionTimeout };
 			}
             return {
                 awaitingInput: true,
@@ -66,7 +66,6 @@ class YSWSCommand extends Command {
             };
         }
         if (step === 1 && data.type === `create`) {
-			console.log(inputFixed);
             if (inputFixed.length < 4) return { awaitingInput: true, prompt: `Invalid input. Enter project title:` };
 			data.title = inputFixed
 			this.interactiveState.step++;
@@ -83,20 +82,20 @@ class YSWSCommand extends Command {
 			data.tags = inputFixed.split(` `).map(tag => tag.trim());
 			this.interactiveState.step++;
 			await this.createEntry(data, req);
-			return { awaitingInput: false, prompt: `Created project, ${data.title}`, timeout: this.interactionTimeout };
+			return { awaitingInput: false, result: `Created project, ${data.title}`, timeout: this.interactionTimeout };
 		}
 		if (step === 1 && data.type === `search`) {
 			if (!input.length) return { awaitingInput: true, prompt: `Invalid input. Enter tags to search for (comma-separated):` };
 			data.tags = input.split(`,`).map(tag => tag.trim());
 			const { data: projects, error } = await supabase.from(`ysws`).select(`*`).contains(`tags`, JSON.stringify(data.tags));
 			if (error) throw error;
-			if (!projects.length) return { awaitingInput: false, prompt: `No projects found.` };
+			if (!projects.length) return { awaitingInput: false, result: `No projects found.` };
 			let availableProjects = []
 			projects.forEach(project => {
 				availableProjects.push(`Project: ${project.title} by ${project.author} ⭐ ${project.likes} - ${project.description} | tags: ${project.tags}`);
 			});
 			
-			return { awaitingInput: false, prompt: `Available projects:\n${availableProjects.join(`\n`)}`, timeout: this.interactionTimeout };
+			return { awaitingInput: false, result: `Available projects:\n${availableProjects.join(`\n`)}`, timeout: this.interactionTimeout };
 		}
     }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import parseANSI from '../utils/parseANSI.js';
+import parseANSI from '../utils/parseANSI.jsx';
 import archLinuxLogoASCII from '../assets/archLinuxLogoASCII.js';
 import { useAuth } from './AuthProvider';
 import './Terminal.css';
@@ -130,7 +130,7 @@ const Terminal = () => {
             setInteractionId(null);
             setInteractivePrompt(null);
             setCommands(prev => [...prev, {
-                output: data.result?.message || data.result || data.prompt,
+                output: data.result?.message || data.result,
                 timestamp: new Date().toISOString()
             }]);
         }
