@@ -32,7 +32,7 @@ jobs:
         run: cd client && docker build . --file Dockerfile --tag $FRONTEND_IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
 
       - name: Log in to registry
-        run: echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
         #
       - name: Push image
         run: |
@@ -62,7 +62,7 @@ jobs:
         run: cd server && docker build . --file Dockerfile --tag $BACKEND_IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
 
       - name: Log in to registry
-        run: echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
         #
       - name: Push image
         run: |
