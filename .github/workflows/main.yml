@@ -1,60 +1,81 @@
-name: Docker Build and Push
+#
+name: Docker Build & Publish
 
+# This workflow runs when any of the following occur:
+# - A push is made to a branch called `main` or `seed`
+# - A tag starting with "v" is created
+# - A pull request is created or updated
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    tags:
+      - v*
   pull_request:
-    branches: [ main ]
-
+  # This creates an environment variable called `IMAGE_NAME ` with the value `ghtoken_product_demo`.
 env:
-  SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-  SLACK_CLIENT_ID: ${{ secrets.SLACK_CLIENT_ID }}
-  SLACK_CLIENT_SECRET: ${{ secrets.SLACK_CLIENT_SECRET }}
-  SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
-  SLACK_REDIRECT_URI: ${{ secrets.SLACK_REDIRECT_URI }}
-
+  FRONTEND_IMAGE_NAME: yswv-client
+  BACKEND_IMAGE_NAME: yswv-server
+#
 jobs:
-  build:
+  # This pushes the image to GitHub Packages.
+  frontend:
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
-
+      #
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          
-      - name: Install Client Dependencies
-        working-directory: ./client
-        run: |
-          npm install
-          
-      - name: Install Server Dependencies
-        working-directory: ./server
-        run: |
-          npm install
-          
-      - name: Set up Docker Compose
-        uses: hoverkraft-tech/compose-action@v2.0.1
 
-      - name: Build images
-        run: |
-          docker compose build
-          docker tag hackclub-ysws-voting-client ghcr.io/${{ github.repository_owner }}/ysws-project-client:latest
-          docker tag hackclub-ysws-voting-server ghcr.io/${{ github.repository_owner }}/ysws-project-server:latest
+      - name: Build image
+        run: cd client && docker build . --file Dockerfile --tag $FRONTEND_IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
 
       - name: Log in to registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Push images
+        run: echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        #
+      - name: Push image
         run: |
-            docker push ghcr.io/${{ github.repository_owner }}/ysws-project-client:latest
-            docker push ghcr.io/${{ github.repository_owner }}/ysws-project-server:latest
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$FRONTEND_IMAGE_NAME
+          # This changes all uppercase characters to lowercase.
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          # This strips the git ref prefix from the version.
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # This strips the "v" prefix from the tag name.
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # This uses the Docker `latest` tag convention.
+          [ "$VERSION" == "main" ] && VERSION=latest
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $FRONTEND_IMAGE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+  backend:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      #
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Clean up
-        if: always()
-        run: docker logout ghcr.io
+      - name: Build image
+        run: cd server && docker build . --file Dockerfile --tag $BACKEND_IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
+
+      - name: Log in to registry
+        run: echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        #
+      - name: Push image
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$BACKEND_IMAGE_NAME
+          # This changes all uppercase characters to lowercase.
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          # This strips the git ref prefix from the version.
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # This strips the "v" prefix from the tag name.
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # This uses the Docker `latest` tag convention.
+          [ "$VERSION" == "main" ] && VERSION=latest
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $BACKEND_IMAGE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
