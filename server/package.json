@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "cls && node index.js",
+    "start": "node index.js",
     "lint": "cls && eslint .",
     "lint:fix": "cls && eslint . --fix",
     "dev": "cls && node index.js"
