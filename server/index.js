@@ -7,7 +7,7 @@ require(`dotenv`).config();
 const app = express();
 app.use(
     cors({
-        origin: `http://localhost:3000`,
+        origin: ["http://localhost:3000", "https://you-ship-we-vote.dino.icu"],
         credentials: true,
         methods: [`GET`, `POST`, `OPTIONS`],
         allowedHeaders: [`Content-Type`, `Authorization`]
@@ -31,15 +31,6 @@ app.post(`/api/command`, async (req, res) => {
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
-});
-app.get(`/auth/callback`, (req, res) => {
-    const next = req.query.next || `/`;
-    res.redirect(303, `/${next.slice(1)}`);
-});
-app.post(`/auth/logout`, async (req, res) => {
-    const { error } = await supabase.auth.signOut();
-    if (error) return res.status(500).json({ error: error.message });
-    res.json({ success: true });
 });
 
 app.listen(8080, () => console.log(`Server running on port 8080`));
