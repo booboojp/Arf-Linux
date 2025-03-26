@@ -1,33 +1,27 @@
-version: '3.8'
-
 services:
   client:
-    build: 
-      context: ./client
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./client:/app
-      - /app/node_modules
+    image: ghcr.io/booboojp/yswv-client:latest
     environment:
-      - REACT_APP_API_URL=http://server:8080
+      - VITE_BACKEND_URI=http://backend.you-ship-we-vote.dino.icu
+      - VITE_SUPABASE_URL=${SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
     depends_on:
       - server
-
+    networks:
+      - proxy
+    env_file:
+      - .env
   server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./server:/app
-      - /app/node_modules
+    image: ghcr.io/booboojp/yswv-server:latest
     environment:
-      - NODE_ENV=development
-      - SESSION_SECRET=${SESSION_SECRET}
-      - SLACK_CLIENT_ID=${SLACK_CLIENT_ID}
-      - SLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET}
-      - SLACK_SIGNING_SECRET=${SLACK_SIGNING_SECRET}
-      - SLACK_REDIRECT_URI=${SLACK_REDIRECT_URI}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - SLACK_REDIRECT_URL=${SLACK_REDIRECT_URL}
+    networks:
+      - proxy
+    env_file:
+      - .env
+
+networks:
+  proxy:
+    external: true
