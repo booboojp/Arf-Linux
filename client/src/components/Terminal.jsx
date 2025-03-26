@@ -75,7 +75,7 @@ const Terminal = () => {
     };
 	const handleCommand = async (command) => {
     try {
-        const response = await fetch(`http://localhost:8080/api/command`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/command`, {
             method: `POST`,
             headers: {
                 'Content-Type': `application/json`,
