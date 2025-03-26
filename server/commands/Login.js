@@ -13,30 +13,29 @@ class LoginCommand extends Command {
     }
 
     async execute(params, req) {
-        if (process.env.NODE_ENV !== `production`) {
+        if (process.env.NODE_ENV == `production`) {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: `slack`,
                 options: { redirectTo: process.env.SLACK_REDIRECT_URI }
             });
-        if (error) throw error;
-        return {
-            success: true,
-            result: `Redirecting to Slack login...`,
-            redirect: data.url
-        };
+            if (error) throw error;
+            return {
+                success: true,
+                result: `Redirecting to Slack login...`,
+                redirect: data.url
+            };
         } else {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: `slack_oidc`,
                 options: { redirectTo: process.env.SLACK_REDIRECT_URI }
             });
+            if (error) throw error;
+            return {
+                success: true,
+                result: `Redirecting to Slack login...`,
+                redirect: data.url
+            };
         }
-        if (error) throw error;
-        return {
-            success: true,
-            result: `Redirecting to Slack login...`,
-            redirect: data.url
-        };
-    }
-}
+}}
 
 module.exports = LoginCommand;
