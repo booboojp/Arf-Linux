@@ -8,8 +8,6 @@ const SUPABASE_URL = process.env.NODE_ENV === `production`
     ? process.env.SUPABASE_URL_INTERNAL
     : process.env.SUPABASE_URL;
 
-console.log(SUPABASE_URL)
-
 const supabase = createClient(
     SUPABASE_URL,
     process.env.SUPABASE_KEY,
@@ -46,4 +44,4 @@ const externalSupabase = process.env.NODE_ENV === `production`
     )
     : null;
 
-module.exports = supabase, externalSupabase;
+module.exports = {supabase, externalSupabase};

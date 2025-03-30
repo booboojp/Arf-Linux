@@ -1,5 +1,5 @@
 const Command = require(`../utils/Command.js`);
-const supabase = require(`../database/supabase.js`);
+const {supabase} = require(`../database/supabase.js`);
 
 class StatusCommand extends Command {
     constructor() {

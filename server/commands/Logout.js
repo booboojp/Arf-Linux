@@ -1,5 +1,5 @@
 const Command = require(`../utils/Command`);
-const supabase = require(`../database/supabase`);
+const {supabase} = require(`../database/supabase`);
 
 class LogoutCommand extends Command {
     constructor() {
