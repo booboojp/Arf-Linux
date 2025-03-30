@@ -1,5 +1,5 @@
 const Command = require(`../utils/Command.js`);
-const supabase = require(`../database/supabase`);
+const {supabase} = require(`../database/supabase`);
 
 class VoteCommand extends Command {
     constructor() {
