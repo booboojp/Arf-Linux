@@ -14,7 +14,7 @@ class LoginCommand extends Command {
 
     async execute(params, req) {
         if (process.env.NODE_ENV == `production`) {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            const { data, error } = await externalSupabase.auth.signInWithOAuth({
                 provider: `slack`,
                 options: { redirectTo: process.env.SLACK_REDIRECT_URI }
             });
