@@ -1,6 +1,6 @@
 const express = require(`express`);
 const cors = require(`cors`);
-const supabase = require(`./database/supabase.js`);
+const {supabase} = require(`./database/supabase.js`);
 const CommandExecutor = require(`./commands.js`);
 require(`dotenv`).config();
 

@@ -1,4 +1,4 @@
-const supabase = require(`../database/supabase`);
+const {supabase} = require(`../database/supabase`);
 
 class Command {
     constructor(options = {}) {
